@@ -1,6 +1,5 @@
 from .scanner import Scanner
 import telnetlib3.telnetlib as telnetlib
-import time
 from typing import Dict, Any, TYPE_CHECKING
 from ..target import Target
 
@@ -25,18 +24,16 @@ class Telnet(Scanner):
             timeout_allowed = int(self.cred["auth"]["blockingio_timeout"])
             wait_for_pass_prompt = int(self.cred["auth"]["telnet_read_timeout"])
 
-            retval = telnet.open(str(self.target.host), int(self.target.port), timeout=timeout_allowed)
-            retval._has_poll = False  # telnetlib hackery :)
-            telnet.write(self.username + "\n")
+            telnet.open(str(self.target.host), int(self.target.port or 23), timeout=timeout_allowed)
+            telnet.write((str(self.username) + "\n").encode())
 
             password = str(self.password) if self.password else ""
 
-            result = telnet.read_until("Password: ", timeout=wait_for_pass_prompt)
-            result = Telnet._trim_string(result)
+            result = telnet.read_until(b"Password: ", timeout=wait_for_pass_prompt)
+            result = Telnet._trim_string(result.decode(errors="ignore"))
 
             if "Password:" in result:
-                telnet.write(password + "\n")
-
+                telnet.write((str(password) + "\n").encode())
             else:
                 self.logger.debug("Check closed at: 1")
                 telnet.close()
@@ -44,16 +41,8 @@ class Telnet(Scanner):
 
             telnet.write(b"ls\n")
 
-            # evidence = '(slow connection, evidence not collected)'
-            # try:
-            #     evidence = telnet.read_all()
-            # except:
-            #     pass
-
-            evidence = "(slow connection, evidence not collected)"
-            time.sleep(3)
-            evidence = telnet.read_very_eager()
-            evidence_fp_check = Telnet._trim_string(evidence)
+            evidence = telnet.read(1024, timeout=3)
+            evidence_fp_check = Telnet._trim_string(evidence.decode(errors="ignore"))
 
             self.logger.debug(f"Evidence string returned (stripped): {evidence_fp_check}")
             evidence_fp_check_as_bytes = ":".join("{:02x}".format(ord(c)) for c in evidence_fp_check)
@@ -64,6 +53,8 @@ class Telnet(Scanner):
                 (not evidence_fp_check)
                 or (evidence_fp_check == "ls")
                 or ("Password:" in evidence_fp_check)
+                or ("Invalid" in evidence_fp_check)
+                or ("failed" in evidence_fp_check)
                 or (evidence_fp_check == "")
             ):
                 self.logger.debug("Check closed at: 2")
@@ -71,15 +62,14 @@ class Telnet(Scanner):
                 raise Exception("Telnet credential not found")
 
             # Remove additional prompts to login - we have a correct username, but incorrect password
-            if evidence_fp_check.endswith("login:") or evidence_fp_check.endswith("login: "):
+            if evidence_fp_check.strip().endswith("login:"):
                 self.logger.debug("Check closed at: 3")
                 telnet.close()
                 raise Exception("Telnet credential not found")
 
-            telnet.write("exit\n")
             telnet.close()
 
-            return evidence
+            return evidence.decode(errors="ignore")
 
         except Exception as e:
             self.logger.debug(f"Error: {str(e)}")
