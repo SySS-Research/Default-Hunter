@@ -6,8 +6,11 @@ from .scanners.http_fingerprint import HttpFingerprint
 from . import scanners
 from .target import Target
 import time
-from typing import List, Dict, Any, Set, Type
+from typing import List, Dict, Any, Set, Type, TYPE_CHECKING
 from .scanners.scanner import Scanner
+
+if TYPE_CHECKING:
+    from .core import Config
 
 # scanner_map maps the friendly proto:// name to the actual class
 SCANNER_MAP: Dict[str, Type[Scanner]] = {
@@ -42,9 +45,9 @@ def get_scanner_class(protocol: str) -> Type[Scanner]:
 
 
 class ScanEngine(object):
-    def __init__(self, creds: List[Dict[str, Any]], config: Any) -> None:
+    def __init__(self, creds: List[Dict[str, Any]], config: "Config") -> None:
         self.creds: List[Dict[str, Any]] = creds
-        self.config: Any = config
+        self.config: "Config" = config
         self.logger: logging.Logger = logging.getLogger("changeme")
         self._manager: Any = mp.Manager()
         self.scanners: RedisQueue = self._get_queue("scanners")
@@ -153,7 +156,7 @@ class ScanEngine(object):
 
             except Exception as e:
                 self.logger.debug(f"Caught exception: {type(e).__name__}")
-                exception_str = e.__str__().replace('\n', '|')
+                exception_str = e.__str__().replace("\n", "|")
                 self.logger.debug(f"Exception: {type(e).__name__}: {exception_str}")
                 return
 
@@ -183,12 +186,12 @@ class ScanEngine(object):
         if len(self.targets) == 1:
             t = self.targets.pop()
             if t.protocol:
-                self.config.protocols = t.protocol
+                self.config.protocols = [t.protocol]
             self.targets.add(t)
 
         fingerprints = list()
         # Build a set of unique fingerprints
-        if "http" in self.config.protocols or self.config.all:
+        if "http" in self.config.protocols:
             fingerprints = fingerprints + HttpFingerprint.build_fingerprints(self.targets, self.creds, self.config)
 
         fingerprints = list(set(fingerprints))  # unique the HTTP fingerprints
@@ -198,12 +201,12 @@ class ScanEngine(object):
             if t.protocol and t.protocol not in self.config.protocols:
                 self.config.protocols += f",{t.protocol}"
 
-        self.logger.info(f"Configured protocols: {self.config.protocols}")
+        self.logger.info(f"Configured protocols: {', '.join(self.config.protocols)}")
 
         for target in self.targets:
             for cred in self.creds:
                 for proto in SCANNER_MAP.keys():
-                    if cred["protocol"] == proto and (proto in self.config.protocols or self.config.all):
+                    if cred["protocol"] == proto and (proto in self.config.protocols):
                         t = Target(host=target.host, port=target.port, protocol=proto)
                         scanner_class = get_scanner_class(proto)
                         fingerprints.append(scanner_class(cred, t, self.config, "", ""))

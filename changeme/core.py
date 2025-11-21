@@ -17,7 +17,7 @@ from . import schema
 import sys
 from . import version
 import yaml
-from typing import Optional, Dict, List, Any, Union
+from typing import Optional, Dict, List, Any
 
 PERSISTENT_QUEUE = "data.db"  # Instantiated in the scan_engine class
 
@@ -158,8 +158,7 @@ class Config(object):
     oa: bool
     fingerprint: bool
     delay: int
-    all: bool
-    protocols: Union[str, list[str]]
+    protocols: list[str]
     fresh: bool
     name: Optional[str]
     category: Optional[str]
@@ -223,11 +222,8 @@ class Config(object):
 
         self.useragent = {"User-Agent": str(self.useragent)} if self.useragent else {}
 
-        if isinstance(self.protocols, str) and "," in self.protocols:
+        if isinstance(self.protocols, str):
             self.protocols = self.protocols.split(",")
-
-        if self.all:
-            self.protocols = "all"
 
         logger.debug(f"Protocols: {self.protocols}")
 
@@ -243,7 +239,6 @@ class Config(object):
 
 def parse_args() -> Dict[str, Any]:
     ap = argparse.ArgumentParser(description=f"Default credential scanner v{version.__version__}")
-    ap.add_argument("--all", "-a", action="store_true", help="Scan for all protocols", default=False)
     ap.add_argument("--category", "-c", type=str, help="Category of default creds to scan for", default=None)
     ap.add_argument("--contributors", action="store_true", help="Display cred file contributors")
     ap.add_argument("--debug", "-d", action="store_true", help="Debug output")
@@ -278,8 +273,8 @@ def parse_args() -> Dict[str, Any]:
     ap.add_argument(
         "--protocols",
         type=str,
-        help=f"Comma separated list of protocols to test: {','.join(all_protocols)}. Defaults to http.",
-        default="http",
+        help="Comma separated list of protocols to test.",
+        default=",".join(all_protocols),
     )
     ap.add_argument(
         "--portoverride", action="store_true", help="Scan all protocols on all specified ports", default=False
