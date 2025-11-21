@@ -81,8 +81,9 @@ class Target(object):
                 logger.info(f"Loaded {len(report.hosts)} hosts from {target}")  # type: ignore
                 for h in report.hosts:  # type: ignore
                     for s in h.services:  # type: ignore
-                        targets.add(Target(host=h.address, port=s.port))  # type: ignore
-            except:
+                        t = Target(host=h.address, port=s.port)
+                        targets.add(t)  # type: ignore
+            except Exception:
                 # parse text file
                 with open(target, "r") as fin:
                     for line in fin:
