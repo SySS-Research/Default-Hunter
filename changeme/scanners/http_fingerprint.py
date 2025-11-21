@@ -75,7 +75,7 @@ class HttpFingerprint:
             tree = html.fromstring(res.content)
             try:
                 csrf = str(tree.xpath('//input[@name="%s"]/@value' % name)[0])
-            except:
+            except Exception:
                 self.logger.error("Failed to get CSRF token %s in %s" % (str(name), str(res.url)))
                 return False
             self.logger.debug("Got CSRF token %s: %s" % (name, csrf))
@@ -91,7 +91,7 @@ class HttpFingerprint:
             try:
                 value = res.cookies[cookie]
                 self.logger.debug("Got session cookie value: %s" % value)
-            except:
+            except Exception:
                 self.logger.error("Failed to get %s cookie from %s" % (cookie, res.url))
                 return False
             return {cookie: value}

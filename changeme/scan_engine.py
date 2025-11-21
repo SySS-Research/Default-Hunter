@@ -110,7 +110,7 @@ class ScanEngine(object):
 
             try:
                 fp = self.fingerprints.get()
-                if type(fp) == bytes:
+                if type(fp) is bytes:
                     fp = pickle.loads(fp)
 
                 # Exit process
