@@ -182,7 +182,7 @@ class ScanEngine(object):
         # Load set of targets into queue
         self.logger.debug(f"{len(self.targets)} targets")
 
-        # If there's only one protocol and the user specified a protocol, override the defaults
+        # If there's only one target and the user specified a protocol, override the defaults
         if len(self.targets) == 1:
             t = self.targets.pop()
             if t.protocol:
@@ -196,20 +196,17 @@ class ScanEngine(object):
 
         fingerprints = list(set(fingerprints))  # unique the HTTP fingerprints
 
-        # Add any protocols if they were included in the targets
-        for t in self.targets:
-            if t.protocol and t.protocol not in self.config.protocols:
-                self.config.protocols += f",{t.protocol}"
-
         self.logger.info(f"Configured protocols: {', '.join(self.config.protocols)}")
 
         for target in self.targets:
             for cred in self.creds:
                 for proto in SCANNER_MAP.keys():
                     if cred["protocol"] == proto and (proto in self.config.protocols):
-                        t = Target(host=target.host, port=target.port, protocol=proto)
-                        scanner_class = get_scanner_class(proto)
-                        fingerprints.append(scanner_class(cred, t, self.config, "", ""))
+                        # Target may already have a protocol if imported from nmap
+                        if target.protocol is None or target.protocol == proto:
+                            t = Target(host=target.host, port=target.port, protocol=proto)
+                            scanner_class = get_scanner_class(proto)
+                            fingerprints.append(scanner_class(cred, t, self.config, "", ""))
 
         self.logger.info("Loading creds into queue")
         for fp in set(fingerprints):

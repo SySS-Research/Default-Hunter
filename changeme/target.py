@@ -6,7 +6,10 @@ import re
 from os.path import isfile
 import shodan
 import socket
-from typing import Optional, Set, Any
+from typing import Optional, Set, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .core import Config
 
 
 class Target(object):
@@ -81,7 +84,8 @@ class Target(object):
                 logger.info(f"Loaded {len(report.hosts)} hosts from {target}")  # type: ignore
                 for h in report.hosts:  # type: ignore
                     for s in h.services:  # type: ignore
-                        t = Target(host=h.address, port=s.port)
+                        protocol = getattr(s, "service", None)
+                        t = Target(host=h.address, port=s.port, protocol=protocol)
                         targets.add(t)  # type: ignore
             except Exception:
                 # parse text file
@@ -127,7 +131,7 @@ class Target(object):
         return targets
 
     @staticmethod
-    def get_shodan_targets(config: Any) -> Set["Target"]:
+    def get_shodan_targets(config: "Config") -> Set["Target"]:
         logger = logging.getLogger("changeme")
         targets: Set[Target] = set()
         api = shodan.Shodan(config.shodan_key)
