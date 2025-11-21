@@ -84,7 +84,7 @@ class ScanEngine(object):
             proc.join()
 
         self.logger.info("Fingerprinting completed")
-        self.logger.debug(f"scanners: {self.scanners.qsize()}, {id(self.scanners)}")
+        self.logger.debug(f"Scanners: {self.scanners.qsize()}")
 
         # Phase II - Scan
         ######################################################################
