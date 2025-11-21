@@ -69,8 +69,6 @@ def main() -> Optional[ScanEngine]:
         ) and not config.oa:
             logger.error("Only JSON, CSV and HTML are the only supported output types.")
 
-    return s
-
 
 def init_logging(verbose: bool = False, debug: bool = False, logfile: Optional[str] = None) -> logging.Logger:
     """
