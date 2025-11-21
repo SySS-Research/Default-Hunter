@@ -69,7 +69,8 @@ class HTTPGetScanner(Scanner):
             self._make_request()
         except Exception as e:
             self.logger.error(f"Failed to connect to {self.target}")
-            self.logger.debug(f"Exception: {type(e).__name__}: {e.__str__().replace('\n', '|')}")
+            exception_str = e.__str__().replace('\n', '|')
+            self.logger.debug(f"Exception: {type(e).__name__}: {exception_str}")
             return None
 
         if self.response.status_code == 429:
@@ -119,7 +120,8 @@ class HTTPGetScanner(Scanner):
                     evidence = self._screenshot(self.target)
                 except Exception as e:
                     self.logger.error(f"Error gathering screenshot for {self.target}")
-                    self.logger.debug(f"Exception: {type(e).__name__}: {e.__str__().replace('\n', '|')}")
+                    exception_str = e.__str__().replace('\n', '|')
+                    self.logger.debug(f"Exception: {type(e).__name__}: {exception_str}")
 
             return {
                 "name": self.cred["name"],
@@ -252,7 +254,8 @@ class HTTPGetScanner(Scanner):
             driver.quit()
         except Exception as e:
             self.logger.error(f"Error getting screenshot for {self.target}")
-            self.logger.debug(f"Exception: {type(e).__name__}: {e.__str__().replace('\n', '|')}")
+            exception_str = e.__str__().replace('\n', '|')
+            self.logger.debug(f"Exception: {type(e).__name__}: {exception_str}")
             evidence = ""
 
         return evidence

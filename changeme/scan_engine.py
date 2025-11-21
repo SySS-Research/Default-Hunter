@@ -3,24 +3,42 @@ import multiprocessing as mp
 from changeme.redis_queue import RedisQueue
 import pickle
 from .scanners.http_fingerprint import HttpFingerprint
+from . import scanners
 from .target import Target
 import time
-from typing import List, Dict, Any, Set
+from typing import List, Dict, Any, Set, Type
+from .scanners.scanner import Scanner
 
-# scanner_map maps the friendly proto:// name to the actual class name
-SCANNER_MAP = {
-    "ssh": "SSH",
-    "ssh_key": "SSHKey",
-    "ftp": "FTP",
-    "memcached": "MemcachedScanner",
-    "mongodb": "Mongodb",
-    "mssql": "MSSQL",
-    "mysql": "MySQL",
-    "postgres": "Postgres",
-    "redis": "RedisScanner",
-    "snmp": "SNMP",
-    "telnet": "Telnet",
+# scanner_map maps the friendly proto:// name to the actual class
+SCANNER_MAP: Dict[str, Type[Scanner]] = {
+    "ssh": scanners.SSH,
+    "ssh_key": scanners.SSHKey,
+    "ftp": scanners.FTP,
+    "memcached": scanners.MemcachedScanner,
+    "mongodb": scanners.Mongodb,
+    "mssql": scanners.MSSQL,
+    "mysql": scanners.MySQL,
+    "postgres": scanners.Postgres,
+    "redis": scanners.RedisScanner,
+    "snmp": scanners.SNMP,
+    "telnet": scanners.Telnet,
 }
+
+
+def get_scanner_class(protocol: str) -> Type[Scanner]:
+    """
+    Get the scanner class for a given protocol.
+
+    Args:
+        protocol: The protocol name (e.g., 'ssh', 'ftp', 'mysql')
+
+    Returns:
+        The scanner class for the protocol
+
+    Raises:
+        KeyError: If the protocol is not supported
+    """
+    return SCANNER_MAP[protocol]
 
 
 class ScanEngine(object):
@@ -135,7 +153,8 @@ class ScanEngine(object):
 
             except Exception as e:
                 self.logger.debug(f"Caught exception: {type(e).__name__}")
-                self.logger.debug(f"Exception: {type(e).__name__}: {e.__str__().replace('\n', '|')}")
+                exception_str = e.__str__().replace('\n', '|')
+                self.logger.debug(f"Exception: {type(e).__name__}: {exception_str}")
                 return
 
             if fp.fingerprint():
@@ -183,10 +202,11 @@ class ScanEngine(object):
 
         for target in self.targets:
             for cred in self.creds:
-                for proto, classname in SCANNER_MAP.items():
+                for proto in SCANNER_MAP.keys():
                     if cred["protocol"] == proto and (proto in self.config.protocols or self.config.all):
                         t = Target(host=target.host, port=target.port, protocol=proto)
-                        fingerprints.append(globals()[classname](cred, t, self.config, "", ""))
+                        scanner_class = get_scanner_class(proto)
+                        fingerprints.append(scanner_class(cred, t, self.config, "", ""))
 
         self.logger.info("Loading creds into queue")
         for fp in set(fingerprints):

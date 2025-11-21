@@ -229,7 +229,7 @@ class Config(object):
         if self.all:
             self.protocols = "all"
 
-        logger.debug("Protocols: {self.protocols}")
+        logger.debug(f"Protocols: {self.protocols}")
 
         if self.output and which("phantomjs") is None:
             logger.warning("phantomjs is not in your path, screenshots will not work")

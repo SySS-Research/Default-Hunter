@@ -15,7 +15,6 @@ class Telnet(Scanner):
 
             retval = telnet.open(str(self.target.host), int(self.target.port), timeout=timeout_allowed)
             retval._has_poll = False  # telnetlib hackery :)
-            banner = telnet.read_until("login: ")
             telnet.write(self.username + "\n")
 
             password = str(self.password) if self.password else ""
