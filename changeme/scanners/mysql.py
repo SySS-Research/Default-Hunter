@@ -1,5 +1,6 @@
 from .database import Database
 
+
 class MySQL(Database):
     def __init__(self, cred, target, username, password, config):
         super(MySQL, self).__init__(cred, target, username, password, config)

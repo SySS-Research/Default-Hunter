@@ -1,1 +1,1 @@
-__all__ = ['core', 'http', 'memcached', 'redis_scanner', 'snmp', 'target']
+__all__ = ["core", "http", "memcached", "redis_scanner", "snmp", "target"]

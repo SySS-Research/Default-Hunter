@@ -1,13 +1,14 @@
-import pickle
+
 try:
     from queue import Queue, Empty
 except ImportError:
-    from Queue import Queue, Empty
+    from Queue import Empty
 
 
 class RedisQueue(object):
     """Simple Queue with multiprocessing.Manager().Queue Backend"""
-    def __init__(self, name, namespace='queue', manager_queue=None, **kwargs):
+
+    def __init__(self, name, namespace="queue", manager_queue=None, **kwargs):
         """Queue wrapper that maintains API compatibility"""
         self.name = name
         self.namespace = namespace

@@ -1,25 +1,24 @@
 from .scanner import Scanner
 import telnetlib
-import re
 import time
 
-class Telnet(Scanner):
 
+class Telnet(Scanner):
     def __init__(self, cred, target, username, password, config):
         super(Telnet, self).__init__(cred, target, config, username, password)
 
     def _check(self):
         try:
             telnet = telnetlib.Telnet(str(self.target.host))
-            timeout_allowed = int(self.cred['auth']['blockingio_timeout'])
-            wait_for_pass_prompt = int(self.cred['auth']['telnet_read_timeout'])
+            timeout_allowed = int(self.cred["auth"]["blockingio_timeout"])
+            wait_for_pass_prompt = int(self.cred["auth"]["telnet_read_timeout"])
 
             retval = telnet.open(str(self.target.host), int(self.target.port), timeout=timeout_allowed)
-            retval._has_poll = False    # telnetlib hackery :)
+            retval._has_poll = False  # telnetlib hackery :)
             banner = telnet.read_until("login: ")
             telnet.write(self.username + "\n")
 
-            password = str(self.password) if self.password else ''
+            password = str(self.password) if self.password else ""
 
             result = telnet.read_until("Password: ", timeout=wait_for_pass_prompt)
             result = Telnet._trim_string(result)
@@ -72,7 +71,7 @@ class Telnet(Scanner):
 
     @staticmethod
     def _trim_string(str_to_trim):
-        return str(str_to_trim).replace(' ','').replace('\s','').replace('\t','').replace('\r','').replace('\n','')
+        return str(str_to_trim).replace(" ", "").replace("\s", "").replace("\t", "").replace("\r", "").replace("\n", "")
 
     def _mkscanner(self, cred, target, u, p, config):
         return Telnet(cred, target, u, p, config)

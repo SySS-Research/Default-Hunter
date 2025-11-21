@@ -5,10 +5,9 @@ from io import StringIO
 
 
 class SSHKey(SSH):
-
     def __init__(self, cred, target, username, key, config):
         super(SSHKey, self).__init__(cred, target, username, key, config)
-        self.logger = logging.getLogger('changeme')
+        self.logger = logging.getLogger("changeme")
 
     def _check(self):
         fake = StringIO(self.password)
@@ -20,11 +19,11 @@ class SSHKey(SSH):
         c = paramiko.SSHClient()
         c.set_missing_host_key_policy(paramiko.MissingHostKeyPolicy())  # ignore unknown hosts
         c.connect(hostname=self.target.host, port=self.target.port, username=self.username, pkey=key)
-        stdin, stdout, stderr = c.exec_command('uname -a')
+        stdin, stdout, stderr = c.exec_command("uname -a")
         evidence = stdout.readlines()[0]
         c.close()
 
-        self.password = 'Private Key'
+        self.password = "Private Key"
         return evidence
 
     def _mkscanner(self, cred, target, u, p, config):

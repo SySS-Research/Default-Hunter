@@ -1,5 +1,6 @@
 from .database import Database
 
+
 class MSSQL(Database):
     def __init__(self, cred, target, username, password, config):
         super(MSSQL, self).__init__(cred, target, username, password, config)
