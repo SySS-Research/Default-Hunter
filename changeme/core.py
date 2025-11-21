@@ -19,7 +19,6 @@ from . import version
 import yaml
 from typing import Optional, Dict, List, Any
 
-PERSISTENT_QUEUE = "data.db"  # Instantiated in the scan_engine class
 
 all_protocols = list(SCANNER_MAP.keys())
 
@@ -48,7 +47,6 @@ def main() -> Optional[ScanEngine]:
     logger = logging.getLogger("changeme")
 
     if not config.validate:
-        check_for_interrupted_scan(config)
         s = ScanEngine(creds, config)
         try:
             s.scan()
@@ -449,51 +447,6 @@ def print_creds(creds: List[Dict[str, Any]]) -> None:
         print(f"\n{cred['name']} ({cred['category']})")
         for i in cred["auth"]["credentials"]:
             print(f"  - {i['username']}:{i['password']}")
-
-
-def check_for_interrupted_scan(config: Config) -> None:
-    logger = logging.getLogger("changeme")
-    if config.fresh:
-        logger.debug("Forcing a fresh scan")
-        remove_queues()
-    elif config.resume:
-        logger.debug("Resuming previous scan")
-        return
-
-    if os.path.exists(PERSISTENT_QUEUE):
-        if not prompt_for_resume(config):
-            remove_queues()
-
-
-def prompt_for_resume(config: Config) -> bool:
-    logger = logging.getLogger("changeme")
-    logger.error("A previous scan was interrupted. Type R to resume or F to start a fresh scan")
-    answer = ""
-    while not (answer == "R" or answer == "F"):
-        prompt = "(R/F)> "
-        answer = ""
-        try:
-            answer = raw_input(prompt)  # type: ignore
-        except NameError:
-            answer = input(prompt)
-
-        if answer.upper() == "F":
-            logger.debug("Forcing a fresh scan")
-        elif answer.upper() == "R":
-            logger.debug("Resuming previous scan")
-            config.resume = True
-
-    return config.resume
-
-
-def remove_queues() -> None:
-    logger = logging.getLogger("changeme")
-    try:
-        os.remove(PERSISTENT_QUEUE)
-        logger.debug(f"{PERSISTENT_QUEUE} removed")
-    except OSError:
-        logger.debug(f"{PERSISTENT_QUEUE} didn't exist")
-        pass
 
 
 def check_version() -> None:
