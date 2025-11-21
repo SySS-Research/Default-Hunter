@@ -1,6 +1,16 @@
-from pysnmp.hlapi import *
-from .scanner import Scanner
+import asyncio
+from pysnmp.hlapi.asyncio import (
+    get_cmd,
+    SnmpEngine,
+    CommunityData,
+    ContextData,
+    UdpTransportTarget,
+    ObjectType,
+    ObjectIdentity,
+)
 from typing import Dict, Any, TYPE_CHECKING
+
+from .scanner import Scanner
 from ..target import Target
 
 if TYPE_CHECKING:
@@ -23,29 +33,48 @@ class SNMP(Scanner):
         return True
 
     def _check(self) -> str:
-        iterator = getCmd(
+        # Run the async SNMP check in a synchronous context
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                # If we're already in an event loop, we can't use run_until_complete
+                # This shouldn't happen in multiprocessing context, but handle it anyway
+                raise RuntimeError("Cannot run async SNMP in an already running event loop")
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+
+        try:
+            return loop.run_until_complete(self._check_async())
+        finally:
+            # Clean up to avoid issues with multiprocessing
+            if not loop.is_running():
+                loop.close()
+
+    async def _check_async(self) -> str:
+        transport_target = await UdpTransportTarget.create((str(self.target.host), 161))
+        errorIndication, errorStatus, errorIndex, varBinds = await get_cmd(
             SnmpEngine(),
             CommunityData(self.password),
-            UdpTransportTarget((str(self.target.host), 161)),
+            transport_target,
             ContextData(),
             ObjectType(ObjectIdentity("SNMPv2-MIB", "sysDescr", 0)),
         )
 
-        errorIndication, errorStatus, errorIndex, varBinds = next(iterator)
-
         evidence = ""
         if errorIndication:
-            self.logger.debug(errorIndication)
+            self.logger.debug(str(errorIndication))
+            raise Exception(f"SNMP error: {errorIndication}")
         elif errorStatus:
-            self.logger.debug(
-                f"{errorStatus.prettyPrint()} at {errorIndex and varBinds[int(errorIndex) - 1][0] or '?'}"
-            )
+            error_msg = f"{errorStatus.prettyPrint()} at {errorIndex and varBinds[int(errorIndex) - 1][0] or '?'}"
+            self.logger.debug(error_msg)
+            raise Exception(error_msg)
         else:
             for varBind in varBinds:
                 evidence += " = ".join([x.prettyPrint() for x in varBind])
 
         if evidence == "":
-            raise Exception
+            raise Exception("No SNMP response received")
 
         return evidence
 

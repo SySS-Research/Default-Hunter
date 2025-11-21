@@ -238,7 +238,7 @@ requires-dist = [
     { name = "psycopg2-binary" },
     { name = "pymongo" },
     { name = "pyodbc" },
-    { name = "pysnmp" },
+    { name = "pysnmp", specifier = ">=7.0" },
     { name = "python-libnmap" },
     { name = "python-memcached" },
     { name = "pyyaml" },
