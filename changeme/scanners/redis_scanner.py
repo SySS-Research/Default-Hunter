@@ -18,7 +18,7 @@ class RedisScanner(Scanner):
 
         r = redis.StrictRedis(host=self.target.host, port=self.target.port)
         info = r.info()
-        evidence = "redis_version: %s, os: %s" % (info["redis_version"], info["os"])
+        evidence = f"redis_version: {info['redis_version']}, os: {info['os']}"
 
         return evidence
 

@@ -247,11 +247,11 @@ def mkcred() -> None:
     creds = list()
     num_creds = cli_prompt("How many default creds for this service (1, 2, 3): ")
     for i in range(0, int(num_creds)):
-        user = cli_prompt("Username %i: " % (i + 1))
-        passwd = cli_prompt("Password %i: " % (i + 1))
+        user = cli_prompt(f"Username {i + 1}: ")
+        passwd = cli_prompt(f"Password {i + 1}: ")
 
         if auth["type"] == "raw_post":
-            raw = cli_prompt("Raw post %i: " % (i + 1))
+            raw = cli_prompt(f"Raw post {i + 1}: ")
             creds.append({"username": user, "password": passwd, "raw": raw})
         else:
             creds.append({"username": user, "password": passwd})
@@ -268,7 +268,7 @@ def mkcred() -> None:
     parameters["auth"] = auth
 
     fname = parameters["name"].lower().replace(" ", "_").replace("/", "_") + ".yml"
-    logging.getLogger("changeme").info("Writing config to %s" % fname)
+    logging.getLogger("changeme").info(f"Writing config to {fname}")
 
     cdir = os.path.join("creds", parameters["protocol"], parameters["category"])
     if not os.path.isdir(cdir):

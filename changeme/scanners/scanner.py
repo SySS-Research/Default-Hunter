@@ -38,7 +38,7 @@ class Scanner(object):
             sock.shutdown(2)
             if result == 0:
                 return True
-                self.logger.info("Port %i open" % self.target.port)
+                self.logger.info(f"Port {self.target.port} open")
             else:
                 return False
         except Exception as e:
@@ -55,9 +55,9 @@ class Scanner(object):
         try:
             evidence = self._check()
             self.logger.critical(
-                "[+] Found %s default cred %s:%s at %s" % (self.cred["name"], self.username, self.password, self.target)
+                f"[+] Found {self.cred['name']} default cred {self.username}:{self.password} at {self.target}"
             )
-            self.logger.debug("%s %s:%s evidence: %s" % (self.target, self.username, self.password, evidence))
+            self.logger.debug(f"{self.target} {self.username}:{self.password} evidence: {evidence}")
             return {
                 "name": self.cred["name"],
                 "username": self.username,
@@ -68,10 +68,9 @@ class Scanner(object):
 
         except Exception as e:
             self.logger.info(
-                "Invalid %s default cred %s:%s at %s"
-                % (self.cred["name"], self.username, self.password, str(self.target))
+                f"Invalid {self.cred['name']} default cred {self.username}:{self.password} at {self.target}"
             )
-            self.logger.debug("%s Exception: %s" % (type(e).__name__, str(e)))
+            self.logger.debug(f"{type(e).__name__} Exception: {str(e)}")
             return False
 
     def _check(self) -> Any:

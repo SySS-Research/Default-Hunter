@@ -26,7 +26,7 @@ class SNMP(Scanner):
             self.logger.debug(errorIndication)
         elif errorStatus:
             self.logger.debug(
-                "%s at %s" % (errorStatus.prettyPrint(), errorIndex and varBinds[int(errorIndex) - 1][0] or "?")
+                f"{errorStatus.prettyPrint()} at {errorIndex and varBinds[int(errorIndex) - 1][0] or '?'}"
             )
         else:
             for varBind in varBinds:

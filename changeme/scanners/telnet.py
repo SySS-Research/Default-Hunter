@@ -44,9 +44,9 @@ class Telnet(Scanner):
             evidence = telnet.read_very_eager()
             evidence_fp_check = Telnet._trim_string(evidence)
 
-            self.logger.debug("Evidence string returned (stripped): %s" % str(evidence_fp_check))
+            self.logger.debug(f"Evidence string returned (stripped): {str(evidence_fp_check)}")
             evidence_fp_check_as_bytes = ":".join("{:02x}".format(ord(c)) for c in evidence_fp_check)
-            self.logger.debug("Evidence string returned (bytes): %s" % str(evidence_fp_check_as_bytes))
+            self.logger.debug(f"Evidence string returned (bytes): {str(evidence_fp_check_as_bytes)}")
 
             # Remove simple echos or additional password prompt (wrong password)
             if (not evidence_fp_check) or (evidence_fp_check == "ls") or ("Password:" in evidence) or (evidence == ""):
@@ -66,7 +66,7 @@ class Telnet(Scanner):
             return evidence
 
         except Exception as e:
-            self.logger.debug("Error: %s" % str(e))
+            self.logger.debug(f"Error: {str(e)}")
             raise e
 
     @staticmethod

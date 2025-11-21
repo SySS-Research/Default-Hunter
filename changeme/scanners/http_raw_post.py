@@ -14,7 +14,7 @@ class HTTPRawPostScanner(HTTPPostScanner):
 
     def _make_request(self):
         self.logger.debug("_make_request")
-        self.logger.debug("target: %s" % self.target)
+        self.logger.debug(f"target: {self.target}")
         self.response = self.request.post(
             self.target,
             self.raw,

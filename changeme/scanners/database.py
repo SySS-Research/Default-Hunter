@@ -9,14 +9,7 @@ class Database(Scanner):
         self.query = None
 
     def _check(self):
-        url = "%s://%s:%s@%s:%s/%s" % (
-            self.target.protocol,
-            self.username,
-            self.password,
-            self.target.host,
-            self.target.port,
-            self.database,
-        )
+        url = f"{self.target.protocol}://{self.username}:{self.password}@{self.target.host}:{self.target.port}/{self.database}"
         engine = sqlalchemy.create_engine(url, connect_args={"connect_timeout": self.config.timeout})
         c = engine.connect()
         res = c.execute(self.query)

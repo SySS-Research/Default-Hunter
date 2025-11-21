@@ -7,9 +7,9 @@ class MemcachedScanner(Scanner):
         super(MemcachedScanner, self).__init__(cred, target, config, username, password)
 
     def _check(self):
-        mc = memcache.Client(["%s:%s" % (self.target.host, self.target.port)], debug=0)
+        mc = memcache.Client([f"{self.target.host}:{self.target.port}"], debug=0)
         stats = mc.get_stats()
-        evidence = "version: %s" % (stats[0][1]["version"])
+        evidence = f"version: {stats[0][1]['version']}"
 
         return evidence
 

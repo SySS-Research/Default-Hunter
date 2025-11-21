@@ -68,17 +68,17 @@ class HTTPGetScanner(Scanner):
         try:
             self._make_request()
         except Exception as e:
-            self.logger.error("Failed to connect to %s" % self.target)
-            self.logger.debug("Exception: %s: %s" % (type(e).__name__, e.__str__().replace("\n", "|")))
+            self.logger.error(f"Failed to connect to {self.target}")
+            self.logger.debug(f"Exception: {type(e).__name__}: {e.__str__().replace('\n', '|')}")
             return None
 
         if self.response.status_code == 429:
-            self.warn("Status 429 received. Sleeping for %d seconds and trying again" % self.config.delay)
+            self.warn(f"Status 429 received. Sleeping for {self.config.delay} seconds and trying again")
             sleep(self.config.delay)
             try:
                 self._make_request()
             except Exception:
-                self.logger.error("Failed to connect to %s" % self.target)
+                self.logger.error(f"Failed to connect to {self.target}")
 
         return self.check_success()
 
@@ -96,13 +96,13 @@ class HTTPGetScanner(Scanner):
             and self.response.history[0].status_code == success.get("status")
         ):
             self.logger.debug(
-                "%s matched %s success status code %s" % (self.target, self.cred["name"], self.response.status_code)
+                f"{self.target} matched {self.cred['name']} success status code {self.response.status_code}"
             )
             if success.get("body"):
                 for string in success.get("body"):
                     if re.search(string, self.response.text, re.IGNORECASE):
                         self.logger.debug(
-                            "%s matched %s success body text %s" % (self.target, self.cred["name"], success.get("body"))
+                            f"{self.target} matched {self.cred['name']} success body text {success.get('body')}"
                         )
                         match = True
                         break
@@ -111,15 +111,15 @@ class HTTPGetScanner(Scanner):
 
         if match:
             self.logger.critical(
-                "[+] Found %s default cred %s:%s at %s" % (self.cred["name"], self.username, self.password, self.target)
+                f"[+] Found {self.cred['name']} default cred {self.username}:{self.password} at {self.target}"
             )
             evidence = ""
             if self.config.output is not None:
                 try:
                     evidence = self._screenshot(self.target)
                 except Exception as e:
-                    self.logger.error("Error gathering screenshot for %s" % self.target)
-                    self.logger.debug("Exception: %s: %s" % (type(e).__name__, e.__str__().replace("\n", "|")))
+                    self.logger.error(f"Error gathering screenshot for {self.target}")
+                    self.logger.debug(f"Exception: {type(e).__name__}: {e.__str__().replace('\n', '|')}")
 
             return {
                 "name": self.cred["name"],
@@ -130,7 +130,7 @@ class HTTPGetScanner(Scanner):
             }
         else:
             self.logger.info(
-                "Invalid %s default cred %s:%s at %s" % (self.cred["name"], self.username, self.password, self.target)
+                f"Invalid {self.cred['name']} default cred {self.username}:{self.password} at {self.target}"
             )
             return False
 
@@ -145,15 +145,15 @@ class HTTPGetScanner(Scanner):
             cookies=self.fingerprint.cookies,
             headers=self.fingerprint.headers,
         )
-        self.logger.debug("_check_fingerprint", "%s - %i" % (self.target, self.response.status_code))
+        self.logger.debug("_check_fingerprint", f"{self.target} - {self.response.status_code}")
         return self.fingerprint.match(self.response)
 
     def _make_request(self):
         self.logger.debug("_make_request")
         data = self.render_creds(self.cred)
         qs = urlencode(data)
-        url = "%s?%s" % (self.target, qs)
-        self.logger.debug("url: %s" % url)
+        url = f"{self.target}?{qs}"
+        self.logger.debug(f"url: {url}")
         self.response = self.request.get(
             self.target,
             verify=False,
@@ -217,11 +217,11 @@ class HTTPGetScanner(Scanner):
     @staticmethod
     def get_base_url(req):
         parsed = urlparse(req)
-        url = "%s://%s" % (parsed[0], parsed[1])
+        url = f"{parsed[0]}://{parsed[1]}"
         return url
 
     def _screenshot(self, target):
-        self.logger.debug("Screenshotting %s" % self.target)
+        self.logger.debug(f"Screenshotting {self.target}")
         # Set up the selenium webdriver
         # This feels like it will have threading issues
         for key, value in self.response.request.headers.items():
@@ -242,7 +242,7 @@ class HTTPGetScanner(Scanner):
         driver.set_window_position(0, 0)
         driver.set_window_size(850, 637.5)
         for cookie in self.response.request._cookies.items():
-            self.logger.debug("Adding cookie: %s:%s" % cookie)
+            self.logger.debug(f"Adding cookie: {cookie[0]}:{cookie[1]}")
             driver.add_cookie({"name": cookie[0], "value": cookie[1], "path": "/", "domain": self.target.host})
 
         try:
@@ -251,8 +251,8 @@ class HTTPGetScanner(Scanner):
             evidence = driver.get_screenshot_as_base64()
             driver.quit()
         except Exception as e:
-            self.logger.error("Error getting screenshot for %s" % self.target)
-            self.logger.debug("Exception: %s: %s" % (type(e).__name__, e.__str__().replace("\n", "|")))
+            self.logger.error(f"Error getting screenshot for {self.target}")
+            self.logger.debug(f"Exception: {type(e).__name__}: {e.__str__().replace('\n', '|')}")
             evidence = ""
 
         return evidence

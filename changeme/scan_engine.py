@@ -34,7 +34,7 @@ class ScanEngine(object):
             self.config.threads if self.fingerprints.qsize() > self.config.threads else self.fingerprints.qsize()
         )
 
-        self.logger.debug("Number of procs: %i" % num_procs)
+        self.logger.debug(f"Number of procs: {num_procs}")
         self.total_fps = self.fingerprints.qsize()
         procs = [mp.Process(target=self.fingerprint_targets) for i in range(num_procs)]
 
@@ -65,7 +65,7 @@ class ScanEngine(object):
             num_procs = self.config.threads if self.scanners.qsize() > self.config.threads else self.scanners.qsize()
             self.total_scanners = self.scanners.qsize()
 
-            self.logger.debug("Starting %i scanner procs" % num_procs)
+            self.logger.debug(f"Starting {num_procs} scanner procs")
             procs = [mp.Process(target=self._scan, args=(self.scanners, self.found_q)) for i in range(num_procs)]
 
             self._add_terminators(self.scanners)
@@ -90,14 +90,14 @@ class ScanEngine(object):
     def _scan(self, scanq: RedisQueue, foundq: RedisQueue) -> None:
         while True:
             remaining = self.scanners.qsize()
-            self.logger.debug("%i scanners remaining" % remaining)
+            self.logger.debug(f"{remaining} scanners remaining")
 
             try:
                 scanner = scanq.get(block=True)
                 if scanner is None:
                     return
             except Exception as e:
-                self.logger.debug("Caught exception: %s" % type(e).__name__)
+                self.logger.debug(f"Caught exception: {type(e).__name__}")
                 continue
 
             result = scanner.scan()
@@ -107,7 +107,7 @@ class ScanEngine(object):
     def fingerprint_targets(self) -> None:
         while True:
             remaining = self.fingerprints.qsize()
-            self.logger.debug("%i fingerprints remaining" % remaining)
+            self.logger.debug(f"{remaining} fingerprints remaining")
 
             try:
                 fp = self.fingerprints.get()
@@ -119,8 +119,8 @@ class ScanEngine(object):
                     return
 
             except Exception as e:
-                self.logger.debug("Caught exception: %s" % type(e).__name__)
-                self.logger.debug("Exception: %s: %s" % (type(e).__name__, e.__str__().replace("\n", "|")))
+                self.logger.debug(f"Caught exception: {type(e).__name__}")
+                self.logger.debug(f"Exception: {type(e).__name__}: {e.__str__().replace('\n', '|')}")
                 return
 
             if fp.fingerprint():
@@ -131,7 +131,7 @@ class ScanEngine(object):
             else:
                 self.logger.debug("failed fingerprint")
 
-        self.logger.debug("scanners: %i, %s" % (self.scanners.qsize(), id(self.scanners)))
+        self.logger.debug(f"scanners: {self.scanners.qsize()}, {id(self.scanners)}")
 
     def _build_targets(self) -> None:
         self.logger.debug("Building targets")
@@ -143,7 +143,7 @@ class ScanEngine(object):
             self.targets = Target.get_shodan_targets(self.config)
 
         # Load set of targets into queue
-        self.logger.debug("%i targets" % len(self.targets))
+        self.logger.debug(f"{len(self.targets)} targets")
 
         # If there's only one protocol and the user specified a protocol, override the defaults
         if len(self.targets) == 1:
@@ -162,9 +162,9 @@ class ScanEngine(object):
         # Add any protocols if they were included in the targets
         for t in self.targets:
             if t.protocol and t.protocol not in self.config.protocols:
-                self.config.protocols += ",%s" % t.protocol
+                self.config.protocols += f",{t.protocol}"
 
-        self.logger.info("Configured protocols: %s" % self.config.protocols)
+        self.logger.info(f"Configured protocols: {self.config.protocols}")
 
         # scanner_map maps the friendly proto:// name to the actual class name
         scanner_map = {
@@ -192,7 +192,7 @@ class ScanEngine(object):
         for fp in set(fingerprints):
             self.fingerprints.put(fp)
         self.total_fps = self.fingerprints.qsize()
-        self.logger.debug("%i fingerprints" % self.fingerprints.qsize())
+        self.logger.debug(f"{self.fingerprints.qsize()} fingerprints")
 
     def dry_run(self) -> None:
         self.logger.info("Dry run targets:")
@@ -203,6 +203,6 @@ class ScanEngine(object):
         quit()
 
     def _get_queue(self, name: str) -> RedisQueue:
-        self.logger.debug("Using multiprocessing queue for %s" % name)
+        self.logger.debug(f"Using multiprocessing queue for {name}")
         q = self._manager.Queue()
         return RedisQueue(name, manager_queue=q)

@@ -58,11 +58,11 @@ class HttpFingerprint:
         except Exception as e:
             if self.config.ssl and e.__class__ == requests.exceptions.SSLError:
                 self.target.protocol = "http"
-                self.logger.debug("Retrying with non-SSL target: %s" % self.target)
+                self.logger.debug(f"Retrying with non-SSL target: {self.target}")
                 try:
                     self._fp()
                 except Exception as e:
-                    self.logger.debug("Failed to connect to %s" % self.target)
+                    self.logger.debug(f"Failed to connect to {self.target}")
 
             return False
 
@@ -85,11 +85,11 @@ class HttpFingerprint:
         if name:
             tree = html.fromstring(res.content)
             try:
-                csrf = str(tree.xpath('//input[@name="%s"]/@value' % name)[0])
+                csrf = str(tree.xpath(f'//input[@name="{name}"]/@value')[0])
             except Exception:
-                self.logger.error("Failed to get CSRF token %s in %s" % (str(name), str(res.url)))
+                self.logger.error(f"Failed to get CSRF token {name} in {res.url}")
                 return False
-            self.logger.debug("Got CSRF token %s: %s" % (name, csrf))
+            self.logger.debug(f"Got CSRF token {name}: {csrf}")
         else:
             csrf = False
 
@@ -103,9 +103,9 @@ class HttpFingerprint:
         if cookie:
             try:
                 value = res.cookies[cookie]
-                self.logger.debug("Got session cookie value: %s" % value)
+                self.logger.debug(f"Got session cookie value: {value}")
             except Exception:
-                self.logger.error("Failed to get %s cookie from %s" % (cookie, res.url))
+                self.logger.error(f"Failed to get {cookie} cookie from {res.url}")
                 return False
             return {cookie: value}
         else:
@@ -118,13 +118,13 @@ class HttpFingerprint:
             fp = cred["fingerprint"]
             basic_auth = fp.get("basic_auth_realm", None)
             if basic_auth and basic_auth in response.headers.get("WWW-Authenticate", list()):
-                self.logger.info("%s basic auth matched: %s" % (cred["name"], basic_auth))
+                self.logger.info(f"{cred['name']} basic auth matched: {basic_auth}")
                 match = True
 
             server = response.headers.get("Server", None)
             fp_server = fp.get("server_header", None)
             if fp_server and server and fp_server in server:
-                self.logger.debug("%s server header matched: %s" % (cred["name"], fp_server))
+                self.logger.debug(f"{cred['name']} server header matched: {fp_server}")
                 match = True
 
             body = fp.get("body", None)
@@ -132,7 +132,7 @@ class HttpFingerprint:
                 for b in body:
                     if re.search(b, response.text):
                         match = True
-                        self.logger.info("%s body matched: %s" % (cred["name"], b))
+                        self.logger.info(f"{cred['name']} body matched: {b}")
                     elif body:
                         match = False
 
@@ -150,7 +150,7 @@ class HttpFingerprint:
                 sessionid = self._get_session_id(self.res, cred)
                 if cred["auth"].get("sessionid") and not sessionid:
                     self.logger.error(
-                        "Missing session cookie %s for %s" % (cred["auth"].get("sessionid"), self.res.url)
+                        f"Missing session cookie {cred['auth'].get('sessionid')} for {self.res.url}"
                     )
                     return
 
@@ -159,7 +159,7 @@ class HttpFingerprint:
                         target = deepcopy(self.target)
                         target.url = u
                         self.logger.debug(
-                            "Building %s %s:%s, %s" % (cred["name"], pair["username"], pair["password"], target)
+                            f"Building {cred['name']} {pair['username']}:{pair['password']}, {target}"
                         )
 
                         if cred["auth"]["type"] == "get":
@@ -229,7 +229,7 @@ class HttpFingerprint:
                     t.url = url
 
                     hfp = HttpFingerprint(t, fp.get("headers", None), fp.get("cookie", None), config)
-                    logger.debug("Adding %s to fingerprint list" % hfp.target)
+                    logger.debug(f"Adding {hfp.target} to fingerprint list")
                     fingerprints.append(hfp)
 
         return fingerprints

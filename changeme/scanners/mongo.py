@@ -9,11 +9,11 @@ class Mongodb(Scanner):
     def _check(self):
         u_p = ""
         if self.username or self.password:
-            u_p = "%s:%s@" % (self.username, self.password)
-        client = MongoClient("mongodb://%s%s:%s/" % (u_p, self.target.host, self.target.port))
+            u_p = f"{self.username}:{self.password}@"
+        client = MongoClient(f"mongodb://{u_p}{self.target.host}:{self.target.port}/")
         dbs = client.database_names()
         server_info = client.server_info()
-        evidence = "Version: %s, databases: %s" % (server_info["version"], ", ".join(dbs))
+        evidence = f"Version: {server_info['version']}, databases: {', '.join(dbs)}"
 
         return evidence
 

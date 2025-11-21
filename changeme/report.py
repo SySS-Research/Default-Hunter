@@ -33,7 +33,7 @@ class Report:
             writer.writeheader()
             writer.writerows(self.results)
 
-        self.logger.critical("%i credentials written to %s" % (len(self.results), fname))
+        self.logger.critical(f"{len(self.results)} credentials written to {fname}")
 
     def render_json(self) -> None:
         # convert the Target classes to a string so it can be json'd
@@ -52,7 +52,7 @@ class Report:
         with open(fname, "w") as fout:
             fout.write(j)
 
-        self.logger.critical("%i credentials written to %s" % (len(self.results), fname))
+        self.logger.critical(f"{len(self.results)} credentials written to {fname}")
 
     def print_results(self) -> None:
         if len(self.results) > 0:
@@ -63,7 +63,7 @@ class Report:
 
             print("")
             print("")
-            self.logger.critical("Found %i default credentials" % len(self.results))
+            self.logger.critical(f"Found {len(self.results)} default credentials")
             print("")
             print(
                 tabulate(
@@ -97,7 +97,7 @@ class Report:
         with open(fname, "w") as fout:
             fout.write(report)
 
-        self.logger.critical("%i credentials written to %s" % (len(self.results), fname))
+        self.logger.critical(f"{len(self.results)} credentials written to {fname}")
 
     @staticmethod
     def get_template_path() -> str:

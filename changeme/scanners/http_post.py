@@ -14,7 +14,7 @@ class HTTPPostScanner(HTTPGetScanner):
 
     def _make_request(self):
         self.logger.debug("_make_request")
-        self.logger.debug("target: %s" % self.target)
+        self.logger.debug(f"target: {self.target}")
         data = self.render_creds(self.cred, self.csrf)
 
         if self.cred.get("form_data"):

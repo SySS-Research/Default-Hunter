@@ -49,10 +49,10 @@ class Target(object):
             target = self.host
 
         if self.port:
-            target += ":%s" % self.port
+            target += f":{self.port}"
 
         if self.protocol:
-            target = "%s://" % self.protocol + target
+            target = f"{self.protocol}://" + target
 
         if self.url:
             target += self.url
@@ -78,7 +78,7 @@ class Target(object):
             try:
                 # parse nmap
                 report = np.parse_fromfile(target)  # type: ignore
-                logger.info("Loaded %i hosts from %s" % (len(report.hosts), target))  # type: ignore
+                logger.info(f"Loaded {len(report.hosts)} hosts from {target}")  # type: ignore
                 for h in report.hosts:  # type: ignore
                     for s in h.services:  # type: ignore
                         targets.add(Target(host=h.address, port=s.port))  # type: ignore
@@ -97,7 +97,7 @@ class Target(object):
     @staticmethod
     def _parse_target_string(target: str) -> Set["Target"]:
         logger = logging.getLogger("changeme")
-        logger.debug("Parsing target %s" % target)
+        logger.debug(f"Parsing target {target}")
         target = target.strip().rstrip("/")
         targets: Set[Target] = set()
         try:
@@ -131,7 +131,7 @@ class Target(object):
         targets: Set[Target] = set()
         api = shodan.Shodan(config.shodan_key)
         results = api.search(config.shodan_query)
-        logger.debug("shodan results: %s" % results)
+        logger.debug(f"shodan results: {results}")
         for r in results["matches"]:
             targets.add(Target(host=r["ip_str"]))
 

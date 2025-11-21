@@ -197,17 +197,17 @@ class Config(object):
 
         if self.proxy and isinstance(self.proxy, str) and re.match(r"^https?://[0-9\.]+:[0-9]{1,5}$", self.proxy):
             self.proxy = {"http": self.proxy, "https": self.proxy}
-            logger.info("Setting proxy to %s" % self.proxy)
+            logger.info(f"Setting proxy to {self.proxy}")
         elif self.proxy and isinstance(self.proxy, str):
             logger.error("Invalid proxy, must be http(s)://x.x.x.x:8080")
             sys.exit()
 
         if self.delay and self.delay != 0:
             if isinstance(self.delay, int) and 0 <= self.delay <= 1000:
-                logger.debug("Delay is set to %d milliseconds" % self.delay)
+                logger.debug(f"Delay is set to {self.delay} milliseconds")
             else:
                 logger.error(
-                    "Invalid delay type. Delay must be an integer between 0 and 1000.  Delay is: %s" % type(self.delay)
+                    f"Invalid delay type. Delay must be an integer between 0 and 1000.  Delay is: {type(self.delay)}"
                 )
 
         # Drop logging level to INFO to see the fingerprint messages
@@ -235,12 +235,12 @@ class Config(object):
     def _file_exists(self, f: str) -> None:
         if not os.path.isfile(f):
             logger = logging.getLogger("changeme")
-            logger.error("File %s not found" % f)
+            logger.error(f"File {f} not found")
             sys.exit()
 
 
 def parse_args() -> Dict[str, Any]:
-    ap = argparse.ArgumentParser(description="Default credential scanner v%s" % version.__version__)
+    ap = argparse.ArgumentParser(description=f"Default credential scanner v{version.__version__}")
     ap.add_argument("--all", "-a", action="store_true", help="Scan for all protocols", default=False)
     ap.add_argument("--category", "-c", type=str, help="Category of default creds to scan for", default=None)
     ap.add_argument("--contributors", action="store_true", help="Display cred file contributors")
@@ -348,7 +348,7 @@ def load_creds(config: Config) -> List[Dict[str, Any]]:
     total_creds = 0
     cred_names = list()
     cred_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "creds")
-    logger.debug("cred_path: %s" % cred_path)
+    logger.debug(f"cred_path: {cred_path}")
     protocols = [proto for proto in os.walk(cred_path)][0][1]
     for root, dirs, files in os.walk(cred_path):
         for fname in files:
@@ -365,10 +365,10 @@ def load_creds(config: Config) -> List[Dict[str, Any]]:
                             total_creds += len(parsed["auth"]["credentials"])
                             creds.append(parsed)
                             cred_names.append(parsed["name"])
-                            logger.debug("Loaded %s" % parsed["name"])
+                            logger.debug(f"Loaded {parsed['name']}")
 
-    logger.info("Loaded %i default credential profiles" % len(creds))
-    logger.info("Loaded %i default credentials\n" % total_creds)
+    logger.info(f"Loaded {len(creds)} default credential profiles")
+    logger.info(f"Loaded {total_creds} default credentials\n")
 
     return creds
 
@@ -379,7 +379,7 @@ def validate_cred(cred: Dict[str, Any], f: str, protocol: str) -> bool:
         v = Validator()
         valid = v.validate(cred, schema.http_schema)  # type: ignore
         for e in v.errors:  # type: ignore
-            logging.getLogger("changeme").error("[validate_cred] Validation Error: %s, %s - %s" % (f, e, v.errors[e]))  # type: ignore
+            logging.getLogger("changeme").error(f"[validate_cred] Validation Error: {f}, {e} - {v.errors[e]}")  # type: ignore
     # TODO: implement schema validators for other protocols
 
     return valid
@@ -392,7 +392,7 @@ def parse_yaml(f: str) -> Optional[Dict[str, Any]]:
         try:
             parsed = yaml.safe_load(raw)
         except Exception as e:
-            logger.error("[parse_yaml] %s is not a valid yaml file" % f)
+            logger.error(f"[parse_yaml] {f} is not a valid yaml file")
             logger.debug(e)
             return None
     return parsed
@@ -451,9 +451,9 @@ def print_contributors(creds: List[Dict[str, Any]]) -> None:
 
 def print_creds(creds: List[Dict[str, Any]]) -> None:
     for cred in creds:
-        print("\n%s (%s)" % (cred["name"], cred["category"]))
+        print(f"\n{cred['name']} ({cred['category']})")
         for i in cred["auth"]["credentials"]:
-            print("  - %s:%s" % (i["username"], i["password"]))
+            print(f"  - {i['username']}:{i['password']}")
 
 
 def check_for_interrupted_scan(config: Config) -> None:
@@ -495,9 +495,9 @@ def remove_queues() -> None:
     logger = logging.getLogger("changeme")
     try:
         os.remove(PERSISTENT_QUEUE)
-        logger.debug("%s removed" % PERSISTENT_QUEUE)
+        logger.debug(f"{PERSISTENT_QUEUE} removed")
     except OSError:
-        logger.debug("%s didn't exist" % PERSISTENT_QUEUE)
+        logger.debug(f"{PERSISTENT_QUEUE} didn't exist")
         pass
 
 
@@ -513,8 +513,7 @@ def check_version() -> None:
     latest = res.text.split("\n")[0].split(" = ")[1].replace("'", "")
     if not version.__version__ == latest:
         logger.warning(
-            "Your version of changeme is out of date. Local version: %s, Latest: %s"
-            % (str(version.__version__), latest)
+            f"Your version of changeme is out of date. Local version: {version.__version__}, Latest: {latest}"
         )
 
 
