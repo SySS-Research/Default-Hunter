@@ -262,9 +262,10 @@ class ScanEngine(object):
 
         # Print status message directly to stdout for clean formatting
         # This ensures it starts at the beginning of a line
-        print(f"\r[{timestamp}] ===== STATUS =====", flush=True)
-        print(f"  Phase: {phase_name}")
-        print(f"  Progress: {completed}/{total} completed ({percent}%)")
-        print(f"  [{bar}]")
-        print(f"  Credentials found: {found_count}")
-        print("  ===================", flush=True)
+        msg = (
+            f"STATUS: Phase {phase_name}. "
+            f"[{bar}] "
+            f"Progress: {completed}/{total} completed ({percent}%) | "
+            f"Credentials found: {found_count}"
+        )
+        print(f"\r[{timestamp}] {msg}", flush=True)
