@@ -64,6 +64,9 @@ class ScanEngine(object):
         # Using dict as a set since Manager doesn't provide a set type
         self.compromised_targets: dict = self._manager.dict()
 
+        # We want a randomzed order, but still want deterministic behavior.
+        random.seed(0)
+
     def scan(self) -> None:
         # Phase I - Fingerprint
         ######################################################################
