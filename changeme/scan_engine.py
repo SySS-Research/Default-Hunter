@@ -136,9 +136,6 @@ class ScanEngine(object):
 
     def _scan(self, scanq: RedisQueue, foundq: RedisQueue, compromised: Any) -> None:
         while True:
-            remaining = self.scanners.qsize()
-            self.logger.debug(f"{remaining} scanners remaining")
-
             try:
                 scanner = scanq.get(block=True)
                 if scanner is None:
@@ -162,8 +159,6 @@ class ScanEngine(object):
     def fingerprint_targets(self) -> None:
         while True:
             with self.lock:
-                remaining = self.fingerprints.qsize()
-
                 try:
                     fp = self.fingerprints.get(block=False)
                 except queue.Empty:
@@ -177,7 +172,6 @@ class ScanEngine(object):
             if not fp:
                 return
 
-            self.logger.debug(f"{remaining} fingerprints remaining")
             if fp.fingerprint():
                 results = fp.get_scanners(self.creds)
                 if results:
