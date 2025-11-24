@@ -6,7 +6,7 @@ import time
 from datetime import datetime
 from typing import List, Dict, Any, Set, Type, TYPE_CHECKING
 
-from .redis_queue import RedisQueue
+from .redis_queue import OurQueue
 from .scanners.http_fingerprint import HttpFingerprint
 from . import scanners
 from .target import Target
@@ -54,12 +54,12 @@ class ScanEngine(object):
         self.config: "Config" = config
         self.logger: logging.Logger = logging.getLogger("changeme")
         self._manager: Any = mp.Manager()
-        self.scanners: RedisQueue = self._get_queue("scanners")
+        self.scanners: OurQueue = self._get_queue("scanners")
         self.total_scanners: int = 0
         self.targets: Set[Target] = set()
-        self.fingerprints: RedisQueue = self._get_queue("fingerprints")
+        self.fingerprints: OurQueue = self._get_queue("fingerprints")
         self.total_fps: int = 0
-        self.found_q: RedisQueue = self._get_queue("found_q")
+        self.found_q: OurQueue = self._get_queue("found_q")
         # Shared dict to track targets that have been successfully compromised
         # Using dict as a set since Manager doesn't provide a set type
         self.compromised_targets: dict = self._manager.dict()
@@ -135,7 +135,7 @@ class ScanEngine(object):
             # Hack to address a broken pipe IOError per https://stackoverflow.com/questions/36359528/broken-pipe-error-with-multiprocessing-queue
             time.sleep(0.1)
 
-    def _scan(self, scanq: RedisQueue, foundq: RedisQueue, compromised: dict) -> None:
+    def _scan(self, scanq: OurQueue, foundq: OurQueue, compromised: dict) -> None:
         while True:
             scanner = scanq.get(block=True)
             if scanner is None:
@@ -229,12 +229,12 @@ class ScanEngine(object):
                 self.logger.info(fp.target)
         quit()
 
-    def _get_queue(self, name: str) -> RedisQueue:
+    def _get_queue(self, name: str) -> OurQueue:
         self.logger.debug(f"Using multiprocessing queue for {name}")
         q = self._manager.Queue()
-        return RedisQueue(name, manager_queue=q)
+        return OurQueue(name, manager_queue=q)
 
-    def _add_terminators(self, q: RedisQueue) -> None:
+    def _add_terminators(self, q: OurQueue) -> None:
         """Add poison pills to signal workers to exit."""
         for _ in range(self.config.threads):
             q.put(None)

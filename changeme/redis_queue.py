@@ -1,7 +1,7 @@
 from queue import Empty
 
 
-class RedisQueue(object):
+class OurQueue(object):
     """Simple Queue with multiprocessing.Manager().Queue Backend"""
 
     def __init__(self, name, namespace="queue", manager_queue=None, **kwargs):

@@ -12,7 +12,7 @@ from tabulate import tabulate
 from typing import Optional, List, Dict, Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from changeme.redis_queue import RedisQueue
+    from changeme.redis_queue import OurQueue
 
 
 class DataclassJSONEncoder(json.JSONEncoder):
@@ -23,7 +23,7 @@ class DataclassJSONEncoder(json.JSONEncoder):
 
 
 class Report:
-    def __init__(self, queue: "RedisQueue", output: Optional[str]) -> None:
+    def __init__(self, queue: "OurQueue", output: Optional[str]) -> None:
         self.results: List[Dict[str, Any]] = self._convert_q2list(queue)
         self.output: Optional[str] = output
         self.logger: logging.Logger = logging.getLogger("changeme")
@@ -113,7 +113,7 @@ class Report:
         template_path = os.path.join(PATH, "templates")
         return template_path
 
-    def _convert_q2list(self, q: "RedisQueue") -> List[Dict[str, Any]]:
+    def _convert_q2list(self, q: "OurQueue") -> List[Dict[str, Any]]:
         items = list()
         while not q.qsize() == 0:
             i = q.get()
