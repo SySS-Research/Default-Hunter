@@ -59,8 +59,10 @@ class ScanEngine(object):
         self.fingerprints: RedisQueue = self._get_queue("fingerprints")
         self.total_fps: int = 0
         self.found_q: RedisQueue = self._get_queue("found_q")
-        self.scanned_targets = set()
         self.lock = mp.Lock()
+        # Shared dict to track targets that have been successfully compromised
+        # Using dict as a set since Manager doesn't provide a set type
+        self.compromised_targets: Any = self._manager.dict()
 
     def scan(self) -> None:
         # Phase I - Fingerprint
@@ -92,16 +94,27 @@ class ScanEngine(object):
                 time.sleep(0.1)  # Poll every 100ms
 
         self.logger.info("Fingerprinting completed")
-        self.logger.debug(f"Scanners: {self.scanners.qsize()}")
 
         # Phase II - Scan
         ######################################################################
+        # Unique the queue using a set for O(1) lookup instead of O(n)
+        scanners_set = set()
+        while self.scanners.qsize() > 0:
+            s = self.scanners.get()
+            scanners_set.add(s)
+
+        for s in scanners_set:
+            self.scanners.put(s)
+
         if not self.config.fingerprint:
             num_procs = self.config.threads if self.scanners.qsize() > self.config.threads else self.scanners.qsize()
             self.total_scanners = self.scanners.qsize()
 
             self.logger.debug(f"Starting {num_procs} scanner threads")
-            procs = [mp.Process(target=self._scan, args=(self.scanners, self.found_q)) for i in range(num_procs)]
+            procs = [
+                mp.Process(target=self._scan, args=(self.scanners, self.found_q, self.compromised_targets))
+                for i in range(num_procs)
+            ]
 
             self._add_terminators(self.scanners)
 
@@ -121,30 +134,29 @@ class ScanEngine(object):
             # Hack to address a broken pipe IOError per https://stackoverflow.com/questions/36359528/broken-pipe-error-with-multiprocessing-queue
             time.sleep(0.1)
 
-    def _scan(self, scanq: RedisQueue, foundq: RedisQueue) -> None:
+    def _scan(self, scanq: RedisQueue, foundq: RedisQueue, compromised: Any) -> None:
         while True:
-            with self.lock:
-                try:
-                    scanner = scanq.get(block=False)
-                except queue.Empty:
-                    return
-                except Exception as e:
-                    self.logger.debug(f"Caught exception: {type(e).__name__}", exc_info=True)
-                    continue
-
-                if not scanner:
-                    return
-
-                if scanner.scan_id in self.scanned_targets:
-                    continue
-
-                self.scanned_targets.add(scanner.scan_id)
-                remaining = self.scanners.qsize()
-
+            remaining = self.scanners.qsize()
             self.logger.debug(f"{remaining} scanners remaining")
+
+            try:
+                scanner = scanq.get(block=True)
+                if scanner is None:
+                    return
+            except Exception as e:
+                self.logger.debug(f"Caught exception: {type(e).__name__}")
+                continue
+
+            # Check if target has already been compromised
+            target_key = str(scanner.target)
+            if target_key in compromised:
+                self.logger.debug(f"Skipping {target_key} - already compromised")
+                continue
 
             result = scanner.scan()
             if result:
+                # Mark target as compromised to skip future scans
+                compromised[target_key] = True
                 foundq.put(result)
 
     def fingerprint_targets(self) -> None:
