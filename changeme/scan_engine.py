@@ -2,6 +2,7 @@ import logging
 import multiprocessing as mp
 import queue
 import time
+from datetime import datetime
 from typing import List, Dict, Any, Set, Type, TYPE_CHECKING
 
 from .redis_queue import RedisQueue
@@ -9,6 +10,7 @@ from .scanners.http_fingerprint import HttpFingerprint
 from . import scanners
 from .target import Target
 from .scanners.scanner import Scanner
+from .keyboard_input import check_for_spacebar
 
 if TYPE_CHECKING:
     from .core import Config
@@ -80,8 +82,12 @@ class ScanEngine(object):
         for proc in procs:
             proc.start()
 
+        # Poll for process completion and keyboard input
         for proc in procs:
-            proc.join()
+            while proc.is_alive():
+                if check_for_spacebar():
+                    self._print_status("fingerprint")
+                time.sleep(0.1)  # Poll every 100ms
 
         self.logger.info("Fingerprinting completed")
         self.logger.debug(f"Scanners: {self.scanners.qsize()}")
@@ -99,8 +105,12 @@ class ScanEngine(object):
                 self.logger.debug("Starting scanner thread")
                 proc.start()
 
+            # Poll for process completion and keyboard input
             for proc in procs:
-                proc.join()
+                while proc.is_alive():
+                    if check_for_spacebar():
+                        self._print_status("scan")
+                    time.sleep(0.1)  # Poll every 100ms
 
             self.logger.info("Scanning Completed")
 
@@ -216,3 +226,45 @@ class ScanEngine(object):
         self.logger.debug(f"Using multiprocessing queue for {name}")
         q = self._manager.Queue()
         return RedisQueue(name, manager_queue=q)
+
+    def _print_status(self, phase: str) -> None:
+        """
+        Print current scanning status to console.
+
+        Args:
+            phase: Either "fingerprint" or "scan" to indicate current phase
+        """
+        timestamp = datetime.now().strftime("%H:%M:%S")
+
+        if phase == "fingerprint":
+            total = self.total_fps
+            remaining = self.fingerprints.qsize()
+            completed = total - remaining
+            phase_name = "Fingerprinting"
+        else:  # scan phase
+            total = self.total_scanners
+            remaining = self.scanners.qsize()
+            completed = total - remaining
+            phase_name = "Scanning"
+
+        # Calculate percentage and progress bar
+        if total > 0:
+            percent = int((completed / total) * 100)
+            bar_length = 20
+            filled = int((percent / 100) * bar_length)
+            bar = "█" * filled + "░" * (bar_length - filled)
+        else:
+            percent = 0
+            bar = "░" * 20
+
+        # Get found credentials count
+        found_count = self.found_q.qsize()
+
+        # Print status message directly to stdout for clean formatting
+        # This ensures it starts at the beginning of a line
+        print(f"\r[{timestamp}] ===== STATUS =====", flush=True)
+        print(f"  Phase: {phase_name}")
+        print(f"  Progress: {completed}/{total} completed ({percent}%)")
+        print(f"  [{bar}]")
+        print(f"  Credentials found: {found_count}")
+        print("  ===================", flush=True)

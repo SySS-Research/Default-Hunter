@@ -4,9 +4,11 @@ import logging
 from logutils import colorize
 import os
 import re
+import sys
 from .report import Report
 import requests
 from requests import ConnectionError
+from .keyboard_input import raw_terminal_mode
 
 try:
     from requests.packages.urllib3.exceptions import InsecureRequestWarning  # type: ignore
@@ -14,7 +16,6 @@ except ImportError:
     from urllib3.exceptions import InsecureRequestWarning  # type: ignore
 from .scan_engine import ScanEngine, SCANNER_MAP
 from . import schema
-import sys
 from . import version
 import yaml
 from typing import Optional, Dict, List, Any
@@ -48,10 +49,17 @@ def main() -> Optional[ScanEngine]:
 
     if not config.validate:
         s = ScanEngine(creds, config)
-        try:
-            s.scan()
-        except IOError:
-            logger.debug("Caught IOError exception")
+
+        # Show startup message about status key if running interactively
+        if sys.stdin.isatty():
+            logger.info("Press SPACE to display scanning status")
+
+        # Use raw terminal mode context manager for single-key capture
+        with raw_terminal_mode():
+            try:
+                s.scan()
+            except IOError:
+                logger.debug("Caught IOError exception")
 
         report = Report(s.found_q, config.output)
         report.print_results()
