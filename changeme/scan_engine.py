@@ -79,6 +79,8 @@ class ScanEngine(object):
         self.total_fps = self.fingerprints.qsize()
         procs = [mp.Process(target=self.fingerprint_targets) for _ in range(num_procs)]
 
+        self._add_terminators(self.fingerprints)
+
         for proc in procs:
             proc.start()
 
@@ -100,6 +102,8 @@ class ScanEngine(object):
 
             self.logger.debug(f"Starting {num_procs} scanner threads")
             procs = [mp.Process(target=self._scan, args=(self.scanners, self.found_q)) for i in range(num_procs)]
+
+            self._add_terminators(self.scanners)
 
             for proc in procs:
                 self.logger.debug("Starting scanner thread")
@@ -226,6 +230,11 @@ class ScanEngine(object):
         self.logger.debug(f"Using multiprocessing queue for {name}")
         q = self._manager.Queue()
         return RedisQueue(name, manager_queue=q)
+
+    def _add_terminators(self, q: RedisQueue) -> None:
+        """Add poison pills to signal workers to exit."""
+        for _ in range(self.config.threads):
+            q.put(None)
 
     def _print_status(self, phase: str) -> None:
         """
