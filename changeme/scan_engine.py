@@ -1,6 +1,7 @@
 import logging
 import multiprocessing as mp
 import queue
+import random
 import time
 from datetime import datetime
 from typing import List, Dict, Any, Set, Type, TYPE_CHECKING
@@ -61,7 +62,7 @@ class ScanEngine(object):
         self.found_q: RedisQueue = self._get_queue("found_q")
         # Shared dict to track targets that have been successfully compromised
         # Using dict as a set since Manager doesn't provide a set type
-        self.compromised_targets: Any = self._manager.dict()
+        self.compromised_targets: dict = self._manager.dict()
 
     def scan(self) -> None:
         # Phase I - Fingerprint
@@ -102,7 +103,8 @@ class ScanEngine(object):
             s = self.scanners.get()
             scanners_set.add(s)
 
-        for s in scanners_set:
+        # Randomize to increase chance to mark targets as compromised before other threads scan them
+        for s in sorted(scanners_set, key=lambda _: random.random()):
             self.scanners.put(s)
 
         if not self.config.fingerprint:
@@ -133,15 +135,11 @@ class ScanEngine(object):
             # Hack to address a broken pipe IOError per https://stackoverflow.com/questions/36359528/broken-pipe-error-with-multiprocessing-queue
             time.sleep(0.1)
 
-    def _scan(self, scanq: RedisQueue, foundq: RedisQueue, compromised: Any) -> None:
+    def _scan(self, scanq: RedisQueue, foundq: RedisQueue, compromised: dict) -> None:
         while True:
-            try:
-                scanner = scanq.get(block=True)
-                if scanner is None:
-                    return
-            except Exception as e:
-                self.logger.debug(f"Caught exception: {type(e).__name__}")
-                continue
+            scanner = scanq.get(block=True)
+            if scanner is None:
+                return
 
             # Check if target has already been compromised
             target_key = str(scanner.target)
@@ -217,7 +215,8 @@ class ScanEngine(object):
                             fingerprints.append(scanner_class(cred, t, self.config, "", ""))
 
         self.logger.info("Loading creds into queue")
-        for fp in set(fingerprints):
+        # Randomize to ease load on targets
+        for fp in sorted(fingerprints, key=lambda _: random.random()):
             self.fingerprints.put(fp)
         self.total_fps = self.fingerprints.qsize()
         self.logger.debug(f"{self.fingerprints.qsize()} fingerprints")
