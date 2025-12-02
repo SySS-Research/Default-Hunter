@@ -167,7 +167,6 @@ class Config(object):
     fingerprint: bool
     delay: int
     protocols: list[str]
-    fresh: bool
     name: Optional[str]
     category: Optional[str]
     useragent: Dict[str, str]
@@ -262,7 +261,6 @@ def parse_args() -> Dict[str, Any]:
     ap.add_argument(
         "--fingerprint", "-f", action="store_true", help="Fingerprint targets, but don't check creds", default=False
     )
-    ap.add_argument("--fresh", action="store_true", help="Flush any previous scans and start fresh", default=False)
     ap.add_argument("--log", "-l", type=str, help="Write logs to logfile", default=None)
     ap.add_argument("--mkcred", action="store_true", help="Make cred file", default=False)
     ap.add_argument("--name", "-n", type=str, help="Narrow testing to the supplied credential name", default=None)

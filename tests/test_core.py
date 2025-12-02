@@ -13,7 +13,6 @@ cli_args = {
     "dump": False,
     "dryrun": False,
     "fingerprint": False,
-    "fresh": True,
     "log": None,
     "mkcred": False,
     "name": None,
