@@ -21,6 +21,8 @@ import yaml
 from typing import Optional, Dict, List, Any
 
 
+# PYTHON_ARGCOMPLETE_OK
+
 all_protocols = list(SCANNER_MAP.keys())
 
 
@@ -318,7 +320,7 @@ def parse_args() -> Dict[str, Any]:
         )
 
     # Enable shell completion
-    argcomplete.autocomplete(ap)
+    argcomplete.autocomplete(ap, always_complete_options=False)
 
     args = ap.parse_args()
 
