@@ -11,7 +11,7 @@ some features while adding others. Most important differences:
 
 - To avoid confusion, the project has been renamed.
 - Removed Redis dependency, as this was quite the obstacle to get the program
-  installed. The code is now Python-only. That also means we lose the resume
+  installed. The code is now Python-only. That also means that we lose the resume
   feature.
 - Scan all protocols by default. If you want less protocols, you have to use the
   `--protocols` argument.
@@ -33,17 +33,6 @@ You can load your targets using a variety of methods, single ip address/host, su
 
 ## Installation
 
-Default Hunter has only been tested on Linux and has known issues on Windows and OS X/macOS. Use docker to run Default Hunter on the unsupported platforms:
-
-```console
-docker run --rm -v uv-cache:/root/.cache -v $(pwd):/workdir -w /workdir \
-    ghcr.io/astral-sh/uv:debian \
-    uv tool run --with=git+https://github.com/SySS-Research/DefaultHunter.git \
-    default-hunter --help
-```
-
-[PhantomJS](http://phantomjs.org/) is required in your PATH for HTML report screenshots.
-
 Install it like any other Python package:
 
 ```console
@@ -53,11 +42,23 @@ uv tool install .
 # Using pipx:
 pipx install .
 
-# Using pip (not recommend):
+# Using pip (not recommended):
 python -m venv .venv
 .venv/bin/pip install .
 ln -s .venv/bin/default-hunter ~/.local/bin/default-hunter
 ```
+
+[PhantomJS](http://phantomjs.org/) is required in your PATH for HTML report screenshots.
+
+Default Hunter has only been tested on Linux and has known issues on Windows and OS X/macOS. Use docker to run Default Hunter on the unsupported platforms:
+
+```console
+docker run --rm -v uv-cache:/root/.cache -v $(pwd):/workdir -w /workdir \
+    ghcr.io/astral-sh/uv:debian \
+    uv tool run --with=git+https://github.com/SySS-Research/DefaultHunter.git \
+    default-hunter --help
+```
+
 
 ## Usage Examples
 
