@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
 # Python 3.14 changes the default to 'forkserver' on Linux.
 # Set to 'fork' for backward compatibility.
-mp.set_start_method('fork')
+mp.set_start_method("fork")
 
 # scanner_map maps the friendly proto:// name to the actual class
 SCANNER_MAP: Dict[str, Type[Scanner]] = {
@@ -208,8 +208,6 @@ class ScanEngine(object):
         if "http" in self.config.protocols:
             fingerprints = fingerprints + HttpFingerprint.build_fingerprints(self.targets, self.creds, self.config)
 
-        fingerprints = list(set(fingerprints))  # unique the HTTP fingerprints
-
         self.logger.info(f"Configured protocols: {', '.join(self.config.protocols)}")
 
         for target in self.targets:
@@ -224,6 +222,7 @@ class ScanEngine(object):
 
         self.logger.info("Loading creds into queue")
         # Randomize to ease load on targets
+        fingerprints = list(set(fingerprints))  # unique the fingerprints
         for fp in sorted(fingerprints, key=lambda _: random.random()):
             self.fingerprints.put(fp)
         self.total_fps = self.fingerprints.qsize()
@@ -234,7 +233,7 @@ class ScanEngine(object):
         while self.fingerprints.qsize() > 0:
             fp = self.fingerprints.get()
             if fp is not None:
-                print(fp.target)
+                print(str(fp))
         raise DryRun
 
     def _get_queue(self, name: str) -> OurQueue:

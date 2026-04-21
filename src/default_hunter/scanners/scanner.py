@@ -38,8 +38,14 @@ class Scanner(object):
         self.username: str = username
         self.password: str = password
 
+    def __str__(self) -> str:
+        result = f"{self.target}, {self.cred['name']}"
+        if self.username or self.password:
+            result += ", {self.username}:{self.password}"
+        return result
+
     def __hash__(self) -> int:
-        return id(self)
+        return hash((type(self), self.cred["name"], self.target, self.username, self.password))
 
     def scan(self) -> Optional[Dict[str, Any]]:
         return self.check_success()  # type: ignore[return-value]
