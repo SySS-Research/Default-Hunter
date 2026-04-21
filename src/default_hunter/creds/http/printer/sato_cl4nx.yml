@@ -1,0 +1,25 @@
+auth:
+  credentials:
+  - password: '0310'
+    username: 'settings'
+  post:
+    username: group
+    password: pw
+  success:
+    body:
+    - 'settings'
+    status: 200
+  type: post
+  url:
+  - /WebConfig/lua/auth.lua
+category: printer
+contributor: bulldawg
+default_port: 443
+fingerprint:
+  body:
+    - '<title>SATO Printer Setup</title>'
+  status: 200
+  url:
+  - /WebConfig/
+name: SATO CL4NX Thermal Printer
+ssl: true

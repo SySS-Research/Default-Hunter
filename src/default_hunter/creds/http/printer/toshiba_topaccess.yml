@@ -1,0 +1,26 @@
+auth:
+  credentials:
+  - password: '123456'
+    username: 'admin'
+    raw: '<DeviceInformationModel><GetValue><Authentication><UserCredential></UserCredential></Authentication></GetValue><GetValue><Panel><DiagnosticMode><Mode_08><Code_8913></Code_8913></Mode_08></DiagnosticMode></Panel></GetValue><SetValue><Authentication><UserCredential><userName>admin</userName><passwd>123456</passwd><ipaddress>10.10.10.10</ipaddress><DepartmentManagement isEnable="false"><requireDepartment></requireDepartment></DepartmentManagement><domainName></domainName><applicationType>TOP_ACCESS</applicationType></UserCredential></Authentication></SetValue><SetValue><UserManager><View><Users><Information><passwd>123456</passwd></Information></Users></View></UserManager></SetValue><Command><Login><commandNode>Authentication/UserCredential</commandNode><Params><appName>TOPACCESS</appName></Params></Login></Command></DeviceInformationModel>'
+  headers: [{'Cookie': 'Session=1; Locale=1; BrowserLang=1; pageTrack=; IgnoreSessionTimeout=0', 'csrfpId':'1'}]
+  success:
+    body:
+    - 'STATUS_OK'
+    status: 200
+  type: raw_post
+  url:
+  - /contentwebserver
+category: printer
+contributor: bulldawg
+default_port: 80
+fingerprint:
+  body:
+    - '/js/TopAccessUtil.js'
+  status: 200
+  url:
+  - /
+name: Toshiba TopAccess
+ssl: false
+
+
