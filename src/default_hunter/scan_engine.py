@@ -17,6 +17,10 @@ from .exceptions import DryRun
 if TYPE_CHECKING:
     from .core import Config
 
+# Python 3.14 changes the default to 'forkserver' on Linux.
+# Set to 'fork' for backward compatibility.
+mp.set_start_method('fork')
+
 # scanner_map maps the friendly proto:// name to the actual class
 SCANNER_MAP: Dict[str, Type[Scanner]] = {
     "ssh": scanners.SSH,
