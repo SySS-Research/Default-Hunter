@@ -25,9 +25,10 @@ class Scanner(object):
         self,
         cred: Dict[str, Any],
         target: Target,
-        config: "Config",
+        *,
         username: str,
         password: str,
+        config: "Config",
     ) -> None:
         self.logger: logging.Logger = logging.getLogger("default_hunter")
         self.cred: Dict[str, Any] = cred
@@ -37,6 +38,17 @@ class Scanner(object):
         self.config: "Config" = config
         self.username: str = username
         self.password: str = password
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Scanner):
+            return False
+        return (
+            type(self) is type(other)
+            and self.cred["name"] == other.cred["name"]
+            and self.target == other.target
+            and self.username == other.username
+            and self.password == other.password
+        )
 
     def __str__(self) -> str:
         result = f"{self.target}, {self.cred['name']}"
@@ -70,7 +82,15 @@ class Scanner(object):
     def get_scanners(self, creds: List[Dict[str, Any]]) -> List["Scanner"]:
         scanners = list()
         for pair in self.cred["auth"]["credentials"]:
-            scanners.append(self._mkscanner(self.cred, self.target, pair["username"], pair["password"], self.config))  # type: ignore[attr-defined]
+            scanners.append(
+                self._mkscanner(  # type: ignore[attr-defined]
+                    cred=self.cred,
+                    target=self.target,
+                    username=pair["username"],
+                    password=pair["password"],
+                    config=self.config,
+                )
+            )
         return scanners
 
     def check_success(self) -> Optional[ScanSuccess]:

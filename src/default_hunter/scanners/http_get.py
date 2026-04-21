@@ -5,7 +5,7 @@ from .scanner import Scanner
 import re
 from selenium import webdriver
 from time import sleep
-from typing import Dict, Any, Optional, Tuple, TYPE_CHECKING
+from typing import Dict, Any, Optional, TYPE_CHECKING
 import requests
 
 if TYPE_CHECKING:
@@ -43,12 +43,13 @@ class HTTPGetScanner(Scanner):
         self,
         cred: Dict[str, Any],
         target: Any,
+        *,
         username: str,
         password: str,
         config: "Config",
         cookies: Optional[Dict[str, str]],
     ) -> None:
-        super(HTTPGetScanner, self).__init__(cred, target, config, username, password)
+        super().__init__(cred, target, username=username, password=password, config=config)
         self.cred: Dict[str, Any] = cred
         self.config: "Config" = config
         self.cookies: Optional[Dict[str, str]] = cookies
@@ -74,15 +75,12 @@ class HTTPGetScanner(Scanner):
         # make the cred have only one u:p combo
         self.cred["auth"]["credentials"] = [{"username": self.username, "password": self.password}]
 
-    def __reduce__(self) -> Tuple[type, Tuple[Any, ...]]:
-        return self.__class__, (self.cred, self.target, self.username, self.password, self.config, self.cookies)
-
     def scan(self) -> Optional[Dict[str, Any]]:
         try:
             self._make_request()
         except Exception as e:
             self.logger.error(f"Failed to connect to {self.target}")
-            exception_str = e.__str__().replace('\n', '|')
+            exception_str = e.__str__().replace("\n", "|")
             self.logger.debug(f"Exception: {type(e).__name__}: {exception_str}")
             return None
 
@@ -136,7 +134,7 @@ class HTTPGetScanner(Scanner):
                     evidence = self._screenshot(self.target)
                 except Exception as e:
                     self.logger.error(f"Error gathering screenshot for {self.target}")
-                    exception_str = e.__str__().replace('\n', '|')
+                    exception_str = e.__str__().replace("\n", "|")
                     self.logger.debug(f"Exception: {type(e).__name__}: {exception_str}")
 
             from .scanner import ScanSuccess
@@ -277,7 +275,7 @@ class HTTPGetScanner(Scanner):
             driver.quit()
         except Exception as e:
             self.logger.error(f"Error getting screenshot for {self.target}")
-            exception_str = e.__str__().replace('\n', '|')
+            exception_str = e.__str__().replace("\n", "|")
             self.logger.debug(f"Exception: {type(e).__name__}: {exception_str}")
             evidence = ""
 

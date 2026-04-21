@@ -12,11 +12,12 @@ class Mongodb(Scanner):
         self,
         cred: Dict[str, Any],
         target: Target,
+        *,
         username: str,
         password: str,
         config: "Config",
     ) -> None:
-        super(Mongodb, self).__init__(cred, target, config, username, password)
+        super().__init__(cred, target, username=username, password=password, config=config)
 
     def _check(self) -> str:
         if not self.target.host or not self.target.port:
@@ -32,5 +33,7 @@ class Mongodb(Scanner):
 
         return evidence
 
-    def _mkscanner(self, cred: Dict[str, Any], target: Target, u: str, p: str, config: "Config") -> "Mongodb":
-        return Mongodb(cred, target, u, p, config)
+    def _mkscanner(
+        self, *, cred: Dict[str, Any], target: Target, username: str, password: str, config: "Config"
+    ) -> "Mongodb":
+        return Mongodb(cred, target, username=username, password=password, config=config)

@@ -11,13 +11,16 @@ class MySQL(Database):
         self,
         cred: Dict[str, Any],
         target: Target,
+        *,
         username: str,
         password: str,
         config: "Config",
     ) -> None:
-        super(MySQL, self).__init__(cred, target, username, password, config)
+        super().__init__(cred, target, username=username, password=password, config=config)
         self.database = ""
         self.query = "select version();"
 
-    def _mkscanner(self, cred: Dict[str, Any], target: Target, u: str, p: str, config: "Config") -> "MySQL":
-        return MySQL(cred, target, u, p, config)
+    def _mkscanner(
+        self, *, cred: Dict[str, Any], target: Target, username: str, password: str, config: "Config"
+    ) -> "MySQL":
+        return MySQL(cred, target, username=username, password=password, config=config)

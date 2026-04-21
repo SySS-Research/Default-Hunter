@@ -1,5 +1,5 @@
 from default_hunter.scanners.http_get import HTTPGetScanner
-from typing import Dict, Any, Optional, Tuple, TYPE_CHECKING
+from typing import Dict, Any, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ..core import Config
@@ -10,20 +10,15 @@ class HTTPPostScanner(HTTPGetScanner):
         self,
         cred: Dict[str, Any],
         target: Any,
+        *,
         username: str,
         password: str,
         config: "Config",
         cookies: Optional[Dict[str, str]],
         csrf: Optional[str],
     ) -> None:
-        super(HTTPPostScanner, self).__init__(cred, target, username, password, config, cookies)
+        super().__init__(cred, target, username=username, password=password, config=config, cookies=cookies)
         self.csrf: Optional[str] = csrf
-
-    def __reduce__(self) -> Tuple[type, Tuple[Any, ...]]:
-        return (
-            self.__class__,
-            (self.cred, self.target, self.username, self.password, self.config, self.cookies, self.csrf),
-        )
 
     def _make_request(self) -> None:
         self.logger.debug("_make_request")

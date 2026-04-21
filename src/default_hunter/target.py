@@ -40,7 +40,7 @@ class Target(object):
         return self.__dict__ == other.__dict__
 
     def __hash__(self) -> int:
-        return id(self)
+        return hash((self.host, self.port, self.protocol, self.url))
 
     def __repr__(self) -> str:
         return self.__str__()

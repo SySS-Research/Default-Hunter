@@ -218,7 +218,7 @@ class ScanEngine(object):
                         if target.protocol is None or target.protocol == proto:
                             t = Target(host=target.host, port=target.port, protocol=proto)
                             scanner_class = get_scanner_class(proto)
-                            fingerprints.append(scanner_class(cred, t, self.config, "", ""))
+                            fingerprints.append(scanner_class(cred, t, username="", password="", config=self.config))
 
         self.logger.info("Loading creds into queue")
         # Randomize to ease load on targets

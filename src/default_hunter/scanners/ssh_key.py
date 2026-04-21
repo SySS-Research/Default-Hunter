@@ -14,11 +14,12 @@ class SSHKey(SSH):
         self,
         cred: Dict[str, Any],
         target: Target,
+        *,
         username: str,
         key: str,
         config: "Config",
     ) -> None:
-        super(SSHKey, self).__init__(cred, target, username, key, config)
+        super().__init__(cred, target, username=username, password=key, config=config)
         self.logger = logging.getLogger("default_hunter")
 
     def _check(self) -> str:
@@ -44,5 +45,7 @@ class SSHKey(SSH):
         self.password = "Private Key"
         return evidence
 
-    def _mkscanner(self, cred: Dict[str, Any], target: Target, u: str, p: str, config: "Config") -> "SSHKey":
-        return SSHKey(cred, target, u, p, config)
+    def _mkscanner(
+        self, *, cred: Dict[str, Any], target: Target, username: str, password: str, config: "Config"
+    ) -> "SSHKey":
+        return SSHKey(cred, target, username=username, key=password, config=config)

@@ -159,7 +159,12 @@ class HttpFingerprint:
                         if cred["auth"]["type"] == "get":
                             scanners.append(
                                 HTTPGetScanner(
-                                    cred, target, pair["username"], pair["password"], self.config, self.req.cookies  # type: ignore[arg-type]
+                                    cred,
+                                    target,
+                                    username=pair["username"],
+                                    password=pair["password"],
+                                    config=self.config,
+                                    cookies=self.req.cookies,  # type: ignore[arg-type]
                                 )
                             )
                         elif cred["auth"]["type"] == "post":
@@ -167,11 +172,11 @@ class HttpFingerprint:
                                 HTTPPostScanner(
                                     cred,
                                     target,
-                                    pair["username"],
-                                    pair["password"],
-                                    self.config,
-                                    self.req.cookies,  # type: ignore[arg-type]
-                                    csrf,
+                                    username=pair["username"],
+                                    password=pair["password"],
+                                    config=self.config,
+                                    cookies=self.req.cookies,  # type: ignore[arg-type]
+                                    csrf=csrf,
                                 )
                             )
                         elif cred["auth"]["type"] == "raw_post":
@@ -179,18 +184,23 @@ class HttpFingerprint:
                                 HTTPRawPostScanner(
                                     cred,
                                     target,
-                                    pair["username"],
-                                    pair["password"],
-                                    self.config,
-                                    self.req.cookies,  # type: ignore[arg-type]
-                                    csrf,
-                                    pair["raw"],
+                                    username=pair["username"],
+                                    password=pair["password"],
+                                    config=self.config,
+                                    cookies=self.req.cookies,  # type: ignore[arg-type]
+                                    csrf=csrf,
+                                    raw=pair["raw"],
                                 )
                             )
                         elif cred["auth"]["type"] == "basic_auth":
                             scanners.append(
                                 HTTPBasicAuthScanner(
-                                    cred, target, pair["username"], pair["password"], self.config, self.req.cookies  # type: ignore[arg-type]
+                                    cred,
+                                    target,
+                                    username=pair["username"],
+                                    password=pair["password"],
+                                    config=self.config,
+                                    cookies=self.req.cookies,  # type: ignore[arg-type]
                                 )
                             )
 

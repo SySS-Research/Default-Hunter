@@ -22,11 +22,12 @@ class SNMP(Scanner):
         self,
         cred: Dict[str, Any],
         target: Target,
+        *,
         username: str,
         password: str,
         config: "Config",
     ) -> None:
-        super(SNMP, self).__init__(cred, target, config, username, password)
+        super().__init__(cred, target, username=username, password=password, config=config)
 
     def fingerprint(self) -> bool:
         # Don't fingerprint since it's UDP
@@ -81,5 +82,7 @@ class SNMP(Scanner):
 
         return evidence
 
-    def _mkscanner(self, cred: Dict[str, Any], target: Target, u: str, p: str, config: "Config") -> "SNMP":
-        return SNMP(cred, target, u, p, config)
+    def _mkscanner(
+        self, *, cred: Dict[str, Any], target: Target, username: str, password: str, config: "Config"
+    ) -> "SNMP":
+        return SNMP(cred, target, username=username, password=password, config=config)

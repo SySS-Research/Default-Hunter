@@ -12,11 +12,12 @@ class Telnet(Scanner):
         self,
         cred: Dict[str, Any],
         target: Target,
+        *,
         username: str,
         password: str,
         config: "Config",
     ) -> None:
-        super(Telnet, self).__init__(cred, target, config, username, password)
+        super().__init__(cred, target, username=username, password=password, config=config)
 
     def _check(self) -> str:
         if not self.target.host:
@@ -84,5 +85,7 @@ class Telnet(Scanner):
             str(str_to_trim).replace(" ", "").replace(r"\s", "").replace("\t", "").replace("\r", "").replace("\n", "")
         )
 
-    def _mkscanner(self, cred: Dict[str, Any], target: Target, u: str, p: str, config: "Config") -> "Telnet":
-        return Telnet(cred, target, u, p, config)
+    def _mkscanner(
+        self, *, cred: Dict[str, Any], target: Target, username: str, password: str, config: "Config"
+    ) -> "Telnet":
+        return Telnet(cred, target, username=username, password=password, config=config)

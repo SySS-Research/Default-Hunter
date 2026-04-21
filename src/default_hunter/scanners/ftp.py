@@ -12,11 +12,12 @@ class FTP(Scanner):
         self,
         cred: Dict[str, Any],
         target: Target,
+        *,
         username: str,
         password: str,
         config: "Config",
     ) -> None:
-        super(FTP, self).__init__(cred, target, config, username, password)
+        super().__init__(cred, target, username=username, password=password, config=config)
 
     def _check(self) -> str:
         if not self.target.host:
@@ -33,5 +34,7 @@ class FTP(Scanner):
 
         return evidence
 
-    def _mkscanner(self, cred: Dict[str, Any], target: Target, u: str, p: str, config: "Config") -> "FTP":
-        return FTP(cred, target, u, p, config)
+    def _mkscanner(
+        self, *, cred: Dict[str, Any], target: Target, username: str, password: str, config: "Config"
+    ) -> "FTP":
+        return FTP(cred, target, username=username, password=password, config=config)

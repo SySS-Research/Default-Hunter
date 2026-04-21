@@ -12,11 +12,12 @@ class Database(Scanner):
         self,
         cred: Dict[str, Any],
         target: Target,
+        *,
         username: str,
         password: str,
         config: "Config",
     ) -> None:
-        super(Database, self).__init__(cred, target, config, username, password)
+        super().__init__(cred, target, username=username, password=password, config=config)
         self.database: Optional[str] = None
         self.query: Optional[str] = None
 
@@ -33,5 +34,7 @@ class Database(Scanner):
 
         return str(results[0][0])
 
-    def _mkscanner(self, cred: Dict[str, Any], target: Target, u: str, p: str, config: "Config") -> "Database":
+    def _mkscanner(
+        self, *, cred: Dict[str, Any], target: Target, username: str, password: str, config: "Config"
+    ) -> "Database":
         raise NotImplementedError("A Database class needs to implement a _mkscanner method.")
