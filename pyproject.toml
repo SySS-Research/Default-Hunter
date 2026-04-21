@@ -54,6 +54,7 @@ dev = [
     "pyright>=1.1.407",
     "pytest>=9.0.1",
     "responses>=0.25.0",
+    "ruff>=0.15.11",
 ]
 
 [tool.pytest.ini_options]
